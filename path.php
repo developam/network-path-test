@@ -2,6 +2,9 @@
 
 init($argv);
 
+/**
+ * Run the program
+ */
 function init($arguments)
 {
 	$pathways = getPathwaysFromCsv($arguments[1]);
@@ -12,6 +15,9 @@ function init($arguments)
 	}
 }
 
+/**
+ * Returns array of pathways and latencies from CSV file
+ */
 function getPathwaysFromCsv($filename)
 {
 	$pathways = [];
@@ -33,6 +39,9 @@ function getPathwaysFromCsv($filename)
 	return $pathways;
 }
 
+/**
+ * Prompt for user input and parse result
+ */
 function getInput()
 {
 	echo 'Please input [Device From] [Device To] [Time] (e.g A F 1000 followed by ENTER key): ';
@@ -51,6 +60,9 @@ function getInput()
 	return $parsed;
 }
 
+/**
+ * Recursively search pathways to find the first path to the final destination node
+ */
 function findMatchingPath($pathways, $followedNodes, $finalDestination, $maxTime, $accumulatedTime = 0)
 {
 	$currentPosition = end($followedNodes);
@@ -77,6 +89,9 @@ function findMatchingPath($pathways, $followedNodes, $finalDestination, $maxTime
 	}
 }
 
+/**
+ * Format output string of all nodes and total time
+ */
 function formatOutput($nodes, $time)
 {
 	foreach ($nodes as $node) {
