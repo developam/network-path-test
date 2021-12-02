@@ -1,31 +1,50 @@
 <?php
 
-$pathways = [];
+init($argv);
 
-if (($csvFile = fopen("{$argv[1]}", 'r')) !== FALSE) {
-	while (($data = fgetcsv($csvFile)) !== FALSE) {
-		$pathways[] = [
-			'origin' => $data[0],
-			'destination' => $data[1],
-			'time' => $data[2]
-		];		
+function init($arguments)
+{
+	$pathways = getPathwaysFromCsv($arguments[1]);
+	while (true) {
+		$input = getInput();
+		$matchingPath = findMatchingPath($pathways, [$input['origin']], $input['destination'], $input['maxTime']);
+		echo $matchingPath ?: 'Path not found' . PHP_EOL;
 	}
-	fclose($csvFile);
-	$pathways = array_merge($pathways, reversePathways($pathways));
 }
 
-var_dump($pathways);
+function getPathwaysFromCsv($filename)
+{
+	$pathways = [];
+	if (($csvFile = fopen($filename, 'r')) !== FALSE) {
+		while (($data = fgetcsv($csvFile)) !== FALSE) {
+			$pathways[] = [
+				'origin' => $data[0],
+				'destination' => $data[1],
+				'time' => $data[2]
+			];
+			$pathways[] = [
+				'origin' => $data[1],
+				'destination' => $data[0],
+				'time' => $data[2]
+			];
+		}
+		fclose($csvFile);
+	}
+	return $pathways;
+}
 
-while (true) {
+function getInput()
+{
 	echo 'Please input [Device From] [Device To] [Time] (e.g A F 1000 followed by ENTER key): ';
 	$input = fopen('php://stdin', 'r');
 	$line = strtoupper(fgets($input));
-	$inputArray = explode(' ', $line);
-	$origin = $inputArray[0];
-	$destination = $inputArray[1];
-	$maxTime = $inputArray[2];
-	$matchingPath = findMatchingPath($pathways, [$origin], $destination, $maxTime);
-	echo $matchingPath ?: 'Path not found' . PHP_EOL;
+	$lineArray = explode(' ', $line);
+	$parsed = [
+		'origin' => $lineArray[0],
+		'destination' => $lineArray[1],
+		'maxTime' => $lineArray[2]
+	];
+	return $parsed;
 }
 
 function findMatchingPath($pathways, $followedNodes, $destinationNode, $maxTime, $accumulatedTime = 0)
@@ -53,16 +72,6 @@ function findMatchingPath($pathways, $followedNodes, $destinationNode, $maxTime,
 			}
 		}
 	}
-}
-
-function reversePathways($pathways)
-{
-	foreach ($pathways as &$pathway) {
-		$oldOrigin = $pathway['origin'];
-		$pathway['origin'] = $pathway['destination'];
-		$pathway['destination'] = $oldOrigin;
-	}
-	return $pathways;
 }
 
 ?>
