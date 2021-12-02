@@ -38,6 +38,10 @@ function getInput()
 	echo 'Please input [Device From] [Device To] [Time] (e.g A F 1000 followed by ENTER key): ';
 	$input = fopen('php://stdin', 'r');
 	$line = strtoupper(fgets($input));
+	if (trim($line) == 'QUIT') {
+		echo 'Goodbye!' . PHP_EOL;
+		exit;
+	}
 	$lineArray = explode(' ', $line);
 	$parsed = [
 		'origin' => $lineArray[0],
@@ -47,31 +51,39 @@ function getInput()
 	return $parsed;
 }
 
-function findMatchingPath($pathways, $followedNodes, $destinationNode, $maxTime, $accumulatedTime = 0)
+function findMatchingPath($pathways, $followedNodes, $finalDestination, $maxTime, $accumulatedTime = 0)
 {
-	$origin = end($followedNodes);
+	$currentPosition = end($followedNodes);
 
 	foreach ($pathways as $pathway) {
-		if ($pathway['origin'] === $origin) {
-			if (in_array($pathway['destination'], $followedNodes)) {
-				continue;
-			}
-			$tempFollowedNodes = array_merge($followedNodes, [$pathway['destination']]);
-			$tempAccumulatedTime = $accumulatedTime + $pathway['time'];
-			if ($pathway['destination'] === $destinationNode && $tempAccumulatedTime <= $maxTime) {
-				foreach ($tempFollowedNodes as $followedNode) {
-					$output .= $followedNode . ' => ';
-				}
-				$output .= $tempAccumulatedTime . PHP_EOL;
-				return $output;
+		if ($pathway['origin'] === $currentPosition && !in_array($pathway['destination'], $followedNodes)) {
+			$newFollowedNodes = array_merge($followedNodes, [$pathway['destination']]);
+			$newAccumulatedTime = $accumulatedTime + $pathway['time'];
+			if ($pathway['destination'] === $finalDestination && $newAccumulatedTime <= $maxTime) {
+				return formatOutput($newFollowedNodes, $newAccumulatedTime);
 			} else {
-				$recursiveOutput = findMatchingPath($pathways, $tempFollowedNodes, $destinationNode, $maxTime, $tempAccumulatedTime);
+				$recursiveOutput = findMatchingPath(
+					$pathways,
+					$newFollowedNodes,
+					$finalDestination,
+					$maxTime,
+					$newAccumulatedTime
+				);
 				if (null !== $recursiveOutput) {
 					return $recursiveOutput;
 				}
 			}
 		}
 	}
+}
+
+function formatOutput($nodes, $time)
+{
+	foreach ($nodes as $node) {
+		$output .= $node . ' => ';
+	}
+	$output .= $time . PHP_EOL;
+	return $output;
 }
 
 ?>
